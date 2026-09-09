@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		D2693FAF3051C68C003CEB2D /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = D2693FAE3051C681003CEB2D /* README.md */; };
+		D2693FB13051C7BC003CEB2D /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = D2693FB03051C7B2003CEB2D /* .gitignore */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		D2693F8F3051C5CE003CEB2D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +32,8 @@
 		D2693F7F3051C5CD003CEB2D /* MemoryAtlas.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MemoryAtlas.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D2693F8E3051C5CE003CEB2D /* MemoryAtlasTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MemoryAtlasTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D2693F983051C5CE003CEB2D /* MemoryAtlasUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MemoryAtlasUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D2693FAE3051C681003CEB2D /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		D2693FB03051C7B2003CEB2D /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -75,6 +82,8 @@
 		D2693F763051C5CD003CEB2D = {
 			isa = PBXGroup;
 			children = (
+				D2693FB03051C7B2003CEB2D /* .gitignore */,
+				D2693FAE3051C681003CEB2D /* README.md */,
 				D2693F813051C5CD003CEB2D /* MemoryAtlas */,
 				D2693F913051C5CE003CEB2D /* MemoryAtlasTests */,
 				D2693F9B3051C5CE003CEB2D /* MemoryAtlasUITests */,
@@ -212,6 +221,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D2693FAF3051C68C003CEB2D /* README.md in Resources */,
+				D2693FB13051C7BC003CEB2D /* .gitignore in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
