@@ -37,7 +37,7 @@ Memory Atlas is also a portfolio project focused on production-minded iOS engine
 | UIKit interoperability | MapKit and `UIViewRepresentable` |
 | Concurrency | Swift async/await |
 | Networking | Book search and metadata API |
-| Persistence | SwiftData and local file storage |
+| Persistence | Core Data and local file storage |
 | Architecture | MVVM with repository abstractions |
 | Unit testing | XCTest |
 | UI testing | XCUITest |
@@ -58,7 +58,7 @@ Data
 
 - **Presentation:** SwiftUI views and view models
 - **Domain:** application models, use cases, and business rules
-- **Data:** SwiftData persistence, image storage, location services, and networking
+- **Data:** Core Data persistence, image storage, location services, and networking
 
 Dependencies will be expressed through protocols so important behavior can be tested without relying on live databases, APIs, or location services.
 
@@ -82,7 +82,7 @@ Any future cloud synchronization will be optional.
 
 - [ ] Establish the application architecture
 - [ ] Define the core memory model
-- [ ] Configure SwiftData persistence
+- [ ] Configure Core Data persistence
 - [ ] Add unit and UI test targets
 - [ ] Implement loading, empty, and error-state components
 
