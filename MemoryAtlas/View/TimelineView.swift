@@ -10,7 +10,7 @@ import SwiftUI
 struct TimelineView: View {
     private var memory: [Memory]
 
-    init(memory: [Memory] = [Memory(id: 1, title: "some title", note: "adding notes", memoryDate: Date(), creationDate: Date()), Memory(id: 2, title: "some title", note: "adding notes", memoryDate: Date(), creationDate: Date()), Memory(id: 3, title: "some title3", note: "adding notes", memoryDate: Date(), creationDate: Date())]) {
+    init(memory: [Memory] = [Memory(id: UUID(), title: "some title", note: "adding notes", memoryDate: Date(), creationDate: Date()), Memory(id: UUID(), title: "some title", note: nil, memoryDate: Date(), creationDate: Date()), Memory(id: UUID(), title: "some title3", note: "adding notes", memoryDate: Date(), creationDate: Date())]) {
         self.memory = memory
     }
 
@@ -20,7 +20,7 @@ struct TimelineView: View {
                 VStack(alignment: .leading) {
                     Text(memory.title)
                         .font(.headline)
-                    Text(memory.note)
+                    Text(memory.note ?? "add notes")
                         .font(.subheadline)
                 }
             }
