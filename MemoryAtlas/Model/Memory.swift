@@ -8,9 +8,9 @@
 import Foundation
 
 struct Memory: Codable, Identifiable {
-    var id: Int
+    let id: UUID
     var title: String
-    var note: String
+    var note: String?
     var memoryDate: Date
     let creationDate: Date
 }
