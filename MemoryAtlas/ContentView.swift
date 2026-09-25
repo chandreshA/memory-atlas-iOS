@@ -8,11 +8,11 @@
 import SwiftUI
 
 struct ContentView: View {
+    @ObservedObject var viewModel: TimelineViewModel
     var body: some View {
-        Text("Memory Atlas")
+        NavigationStack {
+            TimelineView(viewModel: viewModel)
+                .navigationTitle("Timeline")
+        }
     }
-}
-
-#Preview {
-    ContentView()
 }
