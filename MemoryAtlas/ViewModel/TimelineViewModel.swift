@@ -32,10 +32,10 @@ final class TimelineViewModel: ObservableObject {
             let memories = try await memoryRepository.fetchMemories()
             if memories.isEmpty {
                 self.state = .empty
-            }else{
+            } else {
                 self.state = .loaded(memories)
             }
-        }catch {
+        } catch {
             self.state = .failed("Unable to load memories. Please try again.")
         }
         
