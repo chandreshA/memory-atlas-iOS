@@ -10,9 +10,15 @@ import SwiftUI
 
 struct TimelineView: View {
     @ObservedObject var viewModel: TimelineViewModel
+    @State private var isPresentingCreateMemory = false
+    private let makeCreateMemoryViewModel: () -> CreateMemoryViewModel
 
-    init(viewModel: TimelineViewModel) {
+    init(
+        viewModel: TimelineViewModel,
+        makeCreateMemoryViewModel: @escaping () -> CreateMemoryViewModel
+    ) {
         self.viewModel = viewModel
+        self.makeCreateMemoryViewModel = makeCreateMemoryViewModel
     }
 
     var body: some View {
@@ -65,6 +71,25 @@ struct TimelineView: View {
         .task {
             await viewModel.load()
         }
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    isPresentingCreateMemory = true
+                } label: {
+                    Image(systemName: "plus")
+                }
+                .accessibilityLabel("Add Memory")
+                .accessibilityIdentifier("timeline.addButton")
+            }
+        }
+        .sheet(isPresented: $isPresentingCreateMemory) {
+            CreateMemoryView(
+                viewModel: makeCreateMemoryViewModel(),
+                onSaved: {
+                    await viewModel.load()
+                }
+            )
+        }
     }
 }
 
@@ -104,7 +129,10 @@ private struct PreviewMemoryRepository: MemoryRepository {
 
     NavigationStack {
         TimelineView(
-            viewModel: TimelineViewModel(memoryRepository: repository)
+            viewModel: TimelineViewModel(memoryRepository: repository),
+            makeCreateMemoryViewModel: {
+                CreateMemoryViewModel(memoryRepository: repository)
+            }
         )
         .navigationTitle("Timeline")
     }
@@ -115,7 +143,10 @@ private struct PreviewMemoryRepository: MemoryRepository {
 
     NavigationStack {
         TimelineView(
-            viewModel: TimelineViewModel(memoryRepository: repository)
+            viewModel: TimelineViewModel(memoryRepository: repository),
+            makeCreateMemoryViewModel: {
+                CreateMemoryViewModel(memoryRepository: repository)
+            }
         )
         .navigationTitle("Timeline")
     }

@@ -9,6 +9,7 @@ import CoreData
 
 @main
 struct MemoryAtlasApp: App {
+    private let memoryRepository: CoreDataMemoryRepository
     private let persistenceController: PersistenceController
     @StateObject private var viewModel: TimelineViewModel
 
@@ -22,11 +23,19 @@ struct MemoryAtlasApp: App {
         _viewModel = StateObject(
             wrappedValue: TimelineViewModel(memoryRepository: repository)
         )
+        self.memoryRepository = repository
     }
 
     var body: some Scene {
         WindowGroup {
-            ContentView(viewModel: viewModel)
+            ContentView(
+                viewModel: viewModel,
+                makeCreateMemoryViewModel: {
+                    CreateMemoryViewModel(
+                        memoryRepository: self.memoryRepository
+                    )
+                }
+            )
         }
     }
 }
