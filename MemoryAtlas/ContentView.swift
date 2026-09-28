@@ -9,9 +9,13 @@ import SwiftUI
 
 struct ContentView: View {
     @ObservedObject var viewModel: TimelineViewModel
+    let makeCreateMemoryViewModel: () -> CreateMemoryViewModel
     var body: some View {
         NavigationStack {
-            TimelineView(viewModel: viewModel)
+            TimelineView(
+                viewModel: viewModel,
+                makeCreateMemoryViewModel: makeCreateMemoryViewModel
+            )
                 .navigationTitle("Timeline")
         }
     }
