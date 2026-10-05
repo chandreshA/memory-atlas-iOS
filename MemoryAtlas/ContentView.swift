@@ -16,7 +16,6 @@ struct ContentView: View {
                 viewModel: viewModel,
                 makeCreateMemoryViewModel: makeCreateMemoryViewModel
             )
-                .navigationTitle("Timeline")
         }
     }
 }
