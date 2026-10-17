@@ -10,6 +10,7 @@ import SwiftUI
 
 struct TimelineView: View {
     @ObservedObject var viewModel: TimelineViewModel
+    @Environment(\.calendar) private var calendar
     @State private var isPresentingCreateMemory = false
     private let makeCreateMemoryViewModel: () -> CreateMemoryViewModel
 
@@ -30,33 +31,35 @@ struct TimelineView: View {
                     .tint(AppTheme.forestGreen)
                     .foregroundStyle(AppTheme.forestGreen)
                     .padding(24)
-                    .background(
-                        AppTheme.parchment,
-                        in: RoundedRectangle(cornerRadius: 12)
-                    )
+                    .background {
+                        ArchivePaperSurface()
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
                     .padding(.horizontal, 24)
                     .accessibilityIdentifier("timeline.loading")
             case .loaded(let memories):
-                List {
-                    ForEach(memories) { memory in
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(memory.title)
-                                .font(AppTheme.memoryTitle)
-                                .accessibilityLabel(memory.title)
-                            MemoryDateStampView(date: memory.memoryDate)
-                            if let note = memory.note,
-                               !note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                                Text(note)
-                                    .font(AppTheme.memoryBody)
-                                    .foregroundStyle(AppTheme.forestGreen)
+                ScrollView {
+                    LazyVStack(spacing: 0) {
+                        ForEach(Array(memories.enumerated()), id: \.element.id) { index, memory in
+                            VStack(alignment: .leading, spacing: 0) {
+                                // Add chapter headings without changing repository ordering.
+                                if index == 0 || !calendar.isDate(
+                                    memories[index - 1].memoryDate,
+                                    equalTo: memory.memoryDate,
+                                    toGranularity: .month
+                                ) {
+                                    ArchiveMonthHeading(date: memory.memoryDate)
+                                        .padding(.top, index == 0 ? 0 : 8)
+                                }
+                                MemoryTimelineRow(memory: memory)
                             }
+                            .accessibilityElement(children: .contain)
                         }
-                        .accessibilityElement(children: .combine)
-                        .foregroundStyle(AppTheme.forestGreen)
-                        .listRowBackground(AppTheme.parchment)
                     }
+                    .padding(.horizontal, 14)
+                    .padding(.top, 20)
+                    .padding(.bottom, 20)
                 }
-                .scrollContentBackground(.hidden)
                 .accessibilityIdentifier("timeline.list")
             case .idle:
                 Text("No data")
@@ -75,10 +78,10 @@ struct TimelineView: View {
                 }
                 .foregroundStyle(AppTheme.forestGreen)
                 .padding(24)
-                .background(
-                    AppTheme.parchment,
-                    in: RoundedRectangle(cornerRadius: 12)
-                )
+                .background {
+                    ArchivePaperSurface()
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
                 .padding(.horizontal, 24)
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("timeline.empty")
@@ -106,36 +109,30 @@ struct TimelineView: View {
                 }
                 .foregroundStyle(AppTheme.forestGreen)
                 .padding(24)
-                .background(
-                    AppTheme.parchment,
-                    in: RoundedRectangle(cornerRadius: 12)
-                )
+                .background {
+                    ArchivePaperSurface()
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
                 .padding(.horizontal, 24)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(AppTheme.sageGreen.ignoresSafeArea())
-        .safeAreaInset(edge: .top, spacing: 0) {
-            TimelineHeaderView()
+        .background {
+            ArchivePaperSurface(tint: AppTheme.sageGreen, textureOpacity: 0.3)
+                .ignoresSafeArea()
         }
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(AppTheme.forestGreen, for: .navigationBar)
-        .toolbarBackground(.visible, for: .navigationBar)
-        .toolbarColorScheme(.dark, for: .navigationBar)
+        .safeAreaInset(edge: .top, spacing: 0) {
+            TimelineHeaderView {
+                isPresentingCreateMemory = true
+            }
+        }
+        .safeAreaInset(edge: .leading, spacing: 0) {
+            BindingStripView()
+                .ignoresSafeArea(.container, edges: [.top, .bottom])
+        }
+        .toolbar(.hidden, for: .navigationBar)
         .task {
             await viewModel.load()
-        }
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    isPresentingCreateMemory = true
-                } label: {
-                    Image(systemName: "plus")
-                        .foregroundStyle(AppTheme.parchment)
-                }
-                .accessibilityLabel("Add Memory")
-                .accessibilityIdentifier("timeline.addButton")
-            }
         }
         .sheet(isPresented: $isPresentingCreateMemory) {
             CreateMemoryView(
@@ -247,6 +244,29 @@ private struct PreviewMemoryRepository: MemoryRepository {
             }
         )
     }
+}
+
+#Preview("Timeline · Large Text") {
+    let repository = PreviewMemoryRepository(
+        memories: [
+            Memory(
+                id: UUID(),
+                title: "An ordinary Sunday",
+                note: "A quiet morning, a good book, and nowhere to rush.",
+                memoryDate: Date(timeIntervalSince1970: 1_750_000_000),
+                creationDate: Date(timeIntervalSince1970: 1_750_000_100)
+            )
+        ]
+    )
+    NavigationStack {
+        TimelineView(
+            viewModel: TimelineViewModel(memoryRepository: repository),
+            makeCreateMemoryViewModel: {
+                CreateMemoryViewModel(memoryRepository: repository)
+            }
+        )
+    }
+    .environment(\.dynamicTypeSize, .accessibility3)
 }
 
 #endif
