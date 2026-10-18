@@ -51,7 +51,12 @@ struct TimelineView: View {
                                     ArchiveMonthHeading(date: memory.memoryDate)
                                         .padding(.top, index == 0 ? 0 : 8)
                                 }
-                                MemoryTimelineRow(memory: memory)
+                                NavigationLink {
+                                    MemoryDetailView(memory: memory)
+                                } label: {
+                                    MemoryTimelineRow(memory: memory)
+                                }
+                                .buttonStyle(.plain)
                             }
                             .accessibilityElement(children: .contain)
                         }
