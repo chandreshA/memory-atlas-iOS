@@ -1,11 +1,23 @@
-
 # Memory Atlas
 
-Memory Atlas is a local-first iOS app for preserving and exploring personal memories through an interactive timeline and map.
+Memory Atlas is a local-first iOS app for preserving personal memories and exploring the connections between them.
 
-Instead of treating photos, journal entries, books, and places as separate collections, Memory Atlas brings them together as moments. A moment can contain a written reflection, selected photographs, a location, a book, and connections to other memories.
+The current app supports creating text-based memories, browsing them chronologically, and opening individual memories to read their full content. The longer-term vision brings journal entries, photographs, places, and books together in a timeline and interactive map.
 
-> This project is currently in active development.
+> In active development. The text-memory foundation is implemented; photo capture, maps, book integration, and other features below are planned, not yet available.
+
+## Available Today
+
+- Create a memory with a title, date, and optional journal note
+- Persist memories locally using Core Data, without an account
+- Browse memories newest-first by memory date, with month headings
+- Open a read-only detail screen showing a memory's full date, title, and optional journal note
+- Handle loading, empty, saving, and failure states, including retrying a failed timeline load
+- Use an archival visual style with forest greens, parchment textures, floral borders, and ink-wash artwork
+- Support Dynamic Type layouts and accessibility labels, with decorative artwork hidden from VoiceOver
+- Exercise repository and view-model behavior with XCTest
+
+Editing and deletion are the next steps in completing the core memory flow; neither is implemented yet.
 
 ## The Idea
 
@@ -15,114 +27,114 @@ A particular book may remind us of a trip. A photograph may belong to a larger c
 
 Memory Atlas is designed to make those connections visible.
 
-## Planned Features
-
-- Create moments containing text, dates, photos, places, and books
-- Explore memories chronologically through a timeline
-- Discover memories geographically through an interactive map
-- Search and filter memories by date, place, book, or tag
-- Connect related moments into Memory Threads
-- Resurface memories with an On This Day experience
-- Compare past and present visits with Then & Now
-- Export memories in a portable format
-- Use the core experience without creating an account
-
-## Technical Goals
+## Technology and Engineering Goals
 
 Memory Atlas is also a portfolio project focused on production-minded iOS engineering.
 
-| Area | Technology or approach |
-| --- | --- |
-| User interface | SwiftUI |
-| UIKit interoperability | MapKit and `UIViewRepresentable` |
-| Concurrency | Swift async/await |
-| Networking | Book search and metadata API |
-| Persistence | Core Data and local file storage |
-| Architecture | MVVM with repository abstractions |
-| Unit testing | XCTest |
-| UI testing | XCUITest |
-| Accessibility | Dynamic Type, VoiceOver, and non-map alternatives |
-| State management | Explicit loading, empty, success, and error states |
+| Area | Current implementation | Planned work |
+| --- | --- | --- |
+| User interface | SwiftUI timeline, creation form, and memory detail | Editing, media, and map screens |
+| UIKit interoperability | Not yet implemented | MapKit through `UIViewRepresentable` |
+| Concurrency | Async/await repository operations and view-model workflows | Networking and image loading |
+| Networking | Not yet implemented | Book search and metadata API |
+| Persistence | Core Data | Local file storage for imported images |
+| Architecture | MVVM with an injected repository protocol | Extend abstractions as features require them |
+| Unit testing | XCTest for persistence and view models | Coverage for new feature behavior |
+| UI testing | XCUITest target with template tests only | Critical user-flow tests; currently deferred |
+| Accessibility | Dynamic Type adaptations, labels, and identifiers | Broader VoiceOver verification and a non-map alternative |
+| State management | Explicit timeline and memory-creation states | Equivalent handling for future features |
 
 ## Architecture
 
-The planned architecture separates the application into three primary layers:
+The current implementation separates presentation, domain data, and persistence:
 
 ```text
-Presentation
+SwiftUI views and view models
     ↓
-Domain
+MemoryRepository protocol / Memory domain model
     ↓
-Data
+CoreDataMemoryRepository
+    ↓
+Core Data
 ```
 
-- **Presentation:** SwiftUI views and view models
-- **Domain:** application models, use cases, and business rules
-- **Data:** Core Data persistence, image storage, location services, and networking
+- **Presentation:** `TimelineViewModel` loads timeline data; `CreateMemoryViewModel` validates input and coordinates saving. SwiftUI views render their state.
+- **Domain:** `Memory` represents a memory independently of Core Data. `MemoryRepository` defines async fetch and save operations.
+- **Data:** `CoreDataMemoryRepository` uses an injected managed object context, maps persisted entities into domain values, and fetches memories newest-first by memory date.
+- **Composition:** `MemoryAtlasApp` creates the persistence stack and injects dependencies.
 
-Dependencies will be expressed through protocols so important behavior can be tested without relying on live databases, APIs, or location services.
+Tests use in-memory Core Data stores and repository doubles. Networking, image storage, and location dependencies will be introduced when those features are built; they are not part of the current architecture yet.
 
 ## Privacy
 
 Personal memories deserve careful handling.
 
-Memory Atlas is being designed as a local-first application:
+The current app stores text memories on the device, requires no account, and does not request health data.
 
-- Memories are stored on the device
-- An account is not required
-- Only photographs explicitly selected by the user are imported
-- Health information is never requested
-- Exported data remains under the user’s control
+For planned features:
 
-Any future cloud synchronization will be optional.
+- Photo import will be limited to photographs explicitly selected by the user.
+- Exported archives will remain under the user's control.
+- Any future cloud synchronization will be optional.
 
 ## Roadmap
 
-### Phase 1: Foundation
+### Completed Foundation and Text Capture
 
-- [ ] Establish the application architecture
-- [ ] Define the core memory model
-- [ ] Configure Core Data persistence
-- [ ] Add unit and UI test targets
-- [ ] Implement loading, empty, and error-state components
+- [x] Establish MVVM and repository-based dependency injection
+- [x] Define the core memory model
+- [x] Configure Core Data persistence
+- [x] Add unit and UI test targets (feature UI tests remain outstanding)
+- [x] Implement loading, empty, and error-state components
+- [x] Create text-based memories with validation and saving feedback
+- [x] Display memories chronologically with month headings
+- [x] Add repository and view-model unit tests
+- [x] Establish the archival visual design for the timeline and creation form
+- [x] MA-009: Open a read-only memory detail screen from the timeline
 
-### Phase 2: Capture and Timeline
+### Next: Complete the Core Memory Flow
 
-- [ ] Create and edit text-based memories
+- [ ] Edit existing memories
+- [ ] Delete memories with confirmation
+
+### Portfolio MVP: Remaining Features
+
 - [ ] Import selected photographs
-- [ ] Display memories chronologically
+- [ ] Store and display imported images locally
 - [ ] Add search and filtering
-
-### Phase 3: Atlas
-
 - [ ] Attach locations to memories
-- [ ] Display memories on a map
-- [ ] Add map clustering
+- [ ] Display memories on a map using UIKit interoperability
 - [ ] Provide an accessible list alternative
-- [ ] Filter the map using a time range
-
-### Phase 4: Books and Connections
-
 - [ ] Search for books using a remote API
 - [ ] Attach books to memories
+- [ ] Add XCTest coverage for new persistence, networking, and view-model behavior
+- [ ] Add XCUITest coverage for critical user flows (currently deferred)
+- [ ] Verify accessibility and performance across the completed experience
+
+### Later Releases
+
+- [ ] Add map clustering and time-range filtering
 - [ ] Create Memory Threads
 - [ ] Surface related memories
-
-### Phase 5: Reflection and Portability
-
 - [ ] Add On This Day
 - [ ] Add Then & Now
 - [ ] Export a portable memory archive
-- [ ] Improve accessibility and performance
 
 ## Testing Strategy
 
-The project will use:
+Current XCTest coverage includes:
 
-- XCTest for business rules, filtering, persistence, networking, and view-model behavior
-- Test doubles for network, location, image-storage, and persistence dependencies
-- XCUITest for critical flows such as creating, editing, searching, and deleting a memory
-- Accessibility identifiers to keep UI tests readable and reliable
+- In-memory Core Data save/fetch behavior, descending memory-date ordering, and optional notes
+- Timeline initial, loading, loaded, empty, and failure states
+- Memory-creation validation, whitespace normalization, selected dates, injected IDs and timestamps, saving state, and repository failures
+
+Run the `MemoryAtlasTests` tests from Xcode's Test navigator. No live API or external account is required for these tests.
+
+Memory detail also has SwiftUI previews for a populated memory, a title-only memory, and long content at an accessibility text size. These are visual checks, not automated test coverage.
+
+The XCUITest target currently contains template launch/performance tests, not feature-flow coverage. Creating, editing, searching, and deleting flows will receive UI tests as that work is scheduled. Accessibility identifiers are already used in the current screens.
+
+Networking, image-storage, and location tests will use isolated dependencies rather than rely on live services.
 
 ## Getting Started
 
@@ -132,9 +144,11 @@ The project will use:
 git clone https://github.com/chandreshA/memory-atlas-iOS.git
 ```
 
-2. Open `MemoryAtlas.xcodeproj` in Xcode.
-3. Select an iOS simulator.
-4. Build and run the application.
+2. Open `MemoryAtlas.xcodeproj` in Xcode with support for the project's iOS 26.5 deployment target.
+3. Select the `MemoryAtlas` scheme and a compatible iOS simulator.
+4. Build and run the application. No API keys or account setup are required for the current features.
+
+For a physical device, select your development team under **Signing & Capabilities** in Xcode.
 
 The project is under active development, so setup requirements may change as features are introduced.
 
