@@ -10,11 +10,13 @@ import SwiftUI
 struct ContentView: View {
     @ObservedObject var viewModel: TimelineViewModel
     let makeCreateMemoryViewModel: () -> CreateMemoryViewModel
+    let makeEditMemoryViewModel: (Memory) -> EditMemoryViewModel
     var body: some View {
         NavigationStack {
             TimelineView(
                 viewModel: viewModel,
-                makeCreateMemoryViewModel: makeCreateMemoryViewModel
+                makeCreateMemoryViewModel: makeCreateMemoryViewModel,
+                makeEditMemoryViewModel: makeEditMemoryViewModel
             )
         }
     }

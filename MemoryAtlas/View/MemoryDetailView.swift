@@ -8,7 +8,20 @@
 import SwiftUI
 
 struct MemoryDetailView: View {
-    let memory: Memory
+    @State private var memory: Memory
+    @State private var isPresentingEditSheet: Bool = false
+    private let makeEditMemoryViewModel: (Memory) -> EditMemoryViewModel
+    private let onUpdated: (Memory) -> Void
+
+    init(
+        memory: Memory,
+        makeEditMemoryViewModel: @escaping (Memory) -> EditMemoryViewModel,
+        onUpdated: @escaping (Memory) -> Void
+    ) {
+        _memory = State(initialValue: memory)
+        self.makeEditMemoryViewModel = makeEditMemoryViewModel
+        self.onUpdated = onUpdated
+    }
 
     var body: some View {
         ScrollView {
@@ -39,6 +52,12 @@ struct MemoryDetailView: View {
             BindingStripView()
                 .ignoresSafeArea(.container, edges: [.top, .bottom])
         }
+        .safeAreaInset(edge: .bottom, spacing: 0){
+            editButton
+                .padding(.horizontal, 20)
+                .padding(.top, 12)
+                .padding(.bottom, 12)
+        }
         .navigationTitle("Memory")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.visible, for: .navigationBar)
@@ -46,7 +65,42 @@ struct MemoryDetailView: View {
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbarColorScheme(.light, for: .navigationBar)
         .tint(AppTheme.forestGreen)
+        .sheet(isPresented: $isPresentingEditSheet) {
+            EditMemoryView(
+                viewModel: makeEditMemoryViewModel(memory)
+            ) { updatedMemory in
+                memory = updatedMemory
+                onUpdated(updatedMemory)
+            }
+        }
     }
+
+    private var editButton: some View {
+        Button {
+            edit()
+        } label: {
+            HStack(spacing: 8) {
+                Text("Edit")
+            }
+            .font(AppTheme.memoryTitle)
+            .frame(maxWidth: .infinity, minHeight: 44)
+        }
+    }
+
+    private func edit(){
+        isPresentingEditSheet = true
+    }
+}
+
+#if DEBUG
+private struct DetailPreviewRepository: MemoryRepository {
+    func fetchMemories() async throws -> [Memory] {
+        []
+    }
+
+    func save(_ memory: Memory) async throws {}
+
+    func update(_ memory: Memory) async throws {}
 }
 
 #Preview("Memory Detail") {
@@ -59,7 +113,16 @@ struct MemoryDetailView: View {
     )
 
     return NavigationStack {
-        MemoryDetailView(memory: sampleMemory)
+        MemoryDetailView(
+            memory: sampleMemory,
+            makeEditMemoryViewModel: { memory in
+                EditMemoryViewModel(
+                    memory: memory,
+                    memoryRepository: DetailPreviewRepository()
+                )
+            },
+            onUpdated: { _ in }
+        )
     }
 }
 
@@ -73,7 +136,16 @@ struct MemoryDetailView: View {
     )
 
     return NavigationStack {
-        MemoryDetailView(memory: sampleMemory)
+        MemoryDetailView(
+            memory: sampleMemory,
+            makeEditMemoryViewModel: { memory in
+                EditMemoryViewModel(
+                    memory: memory,
+                    memoryRepository: DetailPreviewRepository()
+                )
+            },
+            onUpdated: { _ in }
+        )
     }
 }
 
@@ -98,7 +170,17 @@ struct MemoryDetailView: View {
     )
 
     return NavigationStack {
-        MemoryDetailView(memory: sampleMemory)
+        MemoryDetailView(
+            memory: sampleMemory,
+            makeEditMemoryViewModel: { memory in
+                EditMemoryViewModel(
+                    memory: memory,
+                    memoryRepository: DetailPreviewRepository()
+                )
+            },
+            onUpdated: { _ in }
+        )
     }
     .environment(\.dynamicTypeSize, .accessibility3)
 }
+#endif

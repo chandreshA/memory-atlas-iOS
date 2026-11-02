@@ -34,6 +34,12 @@ struct MemoryAtlasApp: App {
                     CreateMemoryViewModel(
                         memoryRepository: self.memoryRepository
                     )
+                },
+                makeEditMemoryViewModel: { memory in
+                    EditMemoryViewModel(
+                        memory: memory,
+                        memoryRepository: self.memoryRepository
+                    )
                 }
             )
         }
