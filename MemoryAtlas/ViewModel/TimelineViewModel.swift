@@ -41,4 +41,18 @@ final class TimelineViewModel: ObservableObject {
         
         
     }
+
+    func applyUpdate(_ updatedMemory: Memory) {
+        guard case .loaded(var memories) = state,
+              let index = memories.firstIndex(where: {
+                  $0.id == updatedMemory.id
+              }) else {
+            return
+        }
+
+        memories[index] = updatedMemory
+        memories.sort { $0.memoryDate > $1.memoryDate }
+
+        state = .loaded(memories)
+    }
 }

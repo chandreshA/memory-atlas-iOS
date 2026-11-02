@@ -264,6 +264,10 @@ private struct ArchiveSaveButtonStyle: ButtonStyle {
         func save(_ memory: Memory) async throws {
             // Preview does not persist anything.
         }
+
+        func update(_ memory: Memory) async throws {
+            // Preview does not persist changes.
+        }
     }
 
     #Preview("New Memory") {

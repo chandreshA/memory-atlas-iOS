@@ -9,6 +9,7 @@ import CoreData
 
 enum PersistenceError: Error {
     case missingRequiredField(String)
+    case memoryNotFound(UUID)
 }
 
 
@@ -67,5 +68,29 @@ class CoreDataMemoryRepository: MemoryRepository {
         }
     }
     
+    func update(_ memory: Memory) async throws {
+        try await context.perform { [context] in
+            let request = NSFetchRequest<MemoryEntity>(entityName: "MemoryEntity")
+
+            request.predicate = NSPredicate(
+                format: "id == %@",
+                memory.id as NSUUID
+            )
+            request.fetchLimit = 1
+
+            guard let entity = try context.fetch(request).first else {
+                throw PersistenceError.memoryNotFound(memory.id)
+            }
+
+            entity.title = memory.title
+            entity.note = memory.note
+            entity.memoryDate = memory.memoryDate
+
+            if context.hasChanges {
+                try context.save()
+            }
+        }
+    }
+
     
 }

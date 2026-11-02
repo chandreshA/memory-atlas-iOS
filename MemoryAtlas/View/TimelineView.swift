@@ -13,13 +13,16 @@ struct TimelineView: View {
     @Environment(\.calendar) private var calendar
     @State private var isPresentingCreateMemory = false
     private let makeCreateMemoryViewModel: () -> CreateMemoryViewModel
+    private let makeEditMemoryViewModel: (Memory) -> EditMemoryViewModel
 
     init(
         viewModel: TimelineViewModel,
-        makeCreateMemoryViewModel: @escaping () -> CreateMemoryViewModel
+        makeCreateMemoryViewModel: @escaping () -> CreateMemoryViewModel,
+        makeEditMemoryViewModel: @escaping (Memory) -> EditMemoryViewModel
     ) {
         self.viewModel = viewModel
         self.makeCreateMemoryViewModel = makeCreateMemoryViewModel
+        self.makeEditMemoryViewModel = makeEditMemoryViewModel
     }
 
     var body: some View {
@@ -52,7 +55,13 @@ struct TimelineView: View {
                                         .padding(.top, index == 0 ? 0 : 8)
                                 }
                                 NavigationLink {
-                                    MemoryDetailView(memory: memory)
+                                    MemoryDetailView(
+                                        memory: memory,
+                                        makeEditMemoryViewModel: makeEditMemoryViewModel,
+                                        onUpdated: { updatedMemory in
+                                            viewModel.applyUpdate(updatedMemory)
+                                        }
+                                    )
                                 } label: {
                                     MemoryTimelineRow(memory: memory)
                                 }
@@ -174,6 +183,10 @@ private struct PreviewMemoryRepository: MemoryRepository {
     func save(_ memory: Memory) async throws {
         // Previews do not save anything.
     }
+
+    func update(_ memory: Memory) async throws {
+        // Preview does not persist changes.
+    }
 }
 
 #Preview("Loaded Timeline") {
@@ -201,6 +214,12 @@ private struct PreviewMemoryRepository: MemoryRepository {
             viewModel: TimelineViewModel(memoryRepository: repository),
             makeCreateMemoryViewModel: {
                 CreateMemoryViewModel(memoryRepository: repository)
+            },
+            makeEditMemoryViewModel: { memory in
+                EditMemoryViewModel(
+                    memory: memory,
+                    memoryRepository: repository
+                )
             }
         )
     }
@@ -214,6 +233,12 @@ private struct PreviewMemoryRepository: MemoryRepository {
             viewModel: TimelineViewModel(memoryRepository: repository),
             makeCreateMemoryViewModel: {
                 CreateMemoryViewModel(memoryRepository: repository)
+            },
+            makeEditMemoryViewModel: { memory in
+                EditMemoryViewModel(
+                    memory: memory,
+                    memoryRepository: repository
+                )
             }
         )
     }
@@ -230,6 +255,12 @@ private struct PreviewMemoryRepository: MemoryRepository {
             viewModel: TimelineViewModel(memoryRepository: repository),
             makeCreateMemoryViewModel: {
                 CreateMemoryViewModel(memoryRepository: repository)
+            },
+            makeEditMemoryViewModel: { memory in
+                EditMemoryViewModel(
+                    memory: memory,
+                    memoryRepository: repository
+                )
             }
         )
     }
@@ -246,6 +277,12 @@ private struct PreviewMemoryRepository: MemoryRepository {
             viewModel: TimelineViewModel(memoryRepository: repository),
             makeCreateMemoryViewModel: {
                 CreateMemoryViewModel(memoryRepository: repository)
+            },
+            makeEditMemoryViewModel: { memory in
+                EditMemoryViewModel(
+                    memory: memory,
+                    memoryRepository: repository
+                )
             }
         )
     }
@@ -268,6 +305,12 @@ private struct PreviewMemoryRepository: MemoryRepository {
             viewModel: TimelineViewModel(memoryRepository: repository),
             makeCreateMemoryViewModel: {
                 CreateMemoryViewModel(memoryRepository: repository)
+            },
+            makeEditMemoryViewModel: { memory in
+                EditMemoryViewModel(
+                    memory: memory,
+                    memoryRepository: repository
+                )
             }
         )
     }
