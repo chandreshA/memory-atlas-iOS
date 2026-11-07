@@ -2,7 +2,7 @@
 
 Memory Atlas is a local-first iOS app for preserving personal memories and exploring the connections between them.
 
-The current app supports creating and editing text-based memories, browsing them chronologically, and opening individual memories to read their full content. The longer-term vision brings journal entries, photographs, places, and books together in a timeline and interactive map.
+The current app supports creating, reading, editing, and deleting text-based memories, with chronological browsing and individual detail screens. The longer-term vision brings journal entries, photographs, places, and books together in a timeline and interactive map.
 
 > In active development. The text-memory foundation is implemented; photo capture, maps, book integration, and other features below are planned, not yet available.
 
@@ -13,12 +13,13 @@ The current app supports creating and editing text-based memories, browsing them
 - Browse memories newest-first by memory date, with month headings
 - Open a read-only detail screen showing a memory's full date, title, and optional journal note
 - Edit a memory's title, date, and journal note, with validation, saving feedback, and refreshed detail/timeline content
-- Handle loading, empty, saving, and failure states, including retrying a failed timeline load
+- Delete a memory after confirmation, with progress/error feedback and timeline removal after success
+- Handle loading, empty, saving, deleting, and failure states, including retrying a failed timeline load
 - Use an archival visual style with forest greens, parchment textures, floral borders, and ink-wash artwork
 - Support Dynamic Type layouts and accessibility labels, with decorative artwork hidden from VoiceOver
 - Exercise repository and view-model behavior with XCTest
 
-Deletion with confirmation is the next step in completing the core memory flow; it is not implemented yet.
+The core text-memory flow is implemented. Photos, places, book integration, and search/filtering remain planned.
 
 ## The Idea
 
@@ -34,7 +35,7 @@ Memory Atlas is also a portfolio project focused on production-minded iOS engine
 
 | Area | Current implementation | Planned work |
 | --- | --- | --- |
-| User interface | SwiftUI timeline, creation/editing forms, and memory detail | Deletion controls, media, and map screens |
+| User interface | SwiftUI timeline, creation/editing forms, memory detail, and deletion confirmation | Media and map screens |
 | UIKit interoperability | Not yet implemented | MapKit through `UIViewRepresentable` |
 | Concurrency | Async/await repository operations and view-model workflows | Networking and image loading |
 | Networking | Not yet implemented | Book search and metadata API |
@@ -43,7 +44,7 @@ Memory Atlas is also a portfolio project focused on production-minded iOS engine
 | Unit testing | XCTest for persistence and view models | Coverage for new feature behavior |
 | UI testing | XCUITest target with template tests only | Critical user-flow tests; currently deferred |
 | Accessibility | Dynamic Type adaptations, labels, and identifiers | Broader VoiceOver verification and a non-map alternative |
-| State management | Explicit timeline, memory-creation, and editing states | Equivalent handling for future features |
+| State management | Explicit timeline, memory-creation, editing, and deletion states | Equivalent handling for future features |
 
 ## Architecture
 
@@ -59,9 +60,9 @@ CoreDataMemoryRepository
 Core Data
 ```
 
-- **Presentation:** `TimelineViewModel` loads timeline data and applies saved edits; `CreateMemoryViewModel` and `EditMemoryViewModel` validate drafts and coordinate persistence. SwiftUI views render their state.
-- **Domain:** `Memory` represents a memory independently of Core Data. `MemoryRepository` defines async fetch, save, and update operations.
-- **Data:** `CoreDataMemoryRepository` uses an injected managed object context, maps persisted entities into domain values, and fetches memories newest-first by memory date. Updates locate the existing record by ID and preserve its identity and creation date.
+- **Presentation:** `TimelineViewModel` loads timeline data and applies saved edits and deletions; `CreateMemoryViewModel` and `EditMemoryViewModel` validate drafts and coordinate persistence. `DeleteMemoryViewModel` coordinates deletion and publishes operation state. SwiftUI views render their state.
+- **Domain:** `Memory` represents a memory independently of Core Data. `MemoryRepository` defines async fetch, save, update, and delete operations.
+- **Data:** `CoreDataMemoryRepository` maps persisted entities into domain values and fetches memories newest-first by memory date. Updates locate the existing record by ID and preserve its identity and creation date. Deletion uses a separately injected context that rolls back on failure without discarding pending changes in the original context.
 - **Composition:** `MemoryAtlasApp` creates the persistence stack and injects dependencies.
 
 Tests use in-memory Core Data stores and repository doubles. Networking, image storage, and location dependencies will be introduced when those features are built; they are not part of the current architecture yet.
@@ -93,10 +94,7 @@ For planned features:
 - [x] Establish the archival visual design for the timeline and creation form
 - [x] MA-009: Open a read-only memory detail screen from the timeline
 - [x] MA-010: Edit existing memories and refresh detail/timeline content
-
-### Next: Complete the Core Memory Flow
-
-- [ ] Delete memories with confirmation
+- [x] MA-011: Delete memories with confirmation, failure handling, and timeline/empty-state refresh
 
 ### Portfolio MVP: Remaining Features
 
@@ -131,7 +129,7 @@ Current XCTest coverage includes:
 
 Run the `MemoryAtlasTests` tests from Xcode's Test navigator. No live API or external account is required for these tests.
 
-Automated tests were not rerun for MA-010. The unit-test repository doubles need the new `update` protocol requirement before the suite can build; those updates and editing-specific coverage are currently deferred.
+Automated tests were not rerun for MA-010 or MA-011. The unit-test repository doubles need the `update` and `delete` protocol requirements, and Core Data repository setup needs the dedicated deletion-context argument, before the suite can build. Those updates and editing/deletion-specific coverage are currently deferred.
 
 Memory detail also has SwiftUI previews for a populated memory, a title-only memory, and long content at an accessibility text size. These are visual checks, not automated test coverage.
 

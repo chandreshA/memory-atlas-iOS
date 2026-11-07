@@ -15,9 +15,14 @@ enum PersistenceError: Error {
 
 class CoreDataMemoryRepository: MemoryRepository {
     private let context: NSManagedObjectContext
+    private let deletionContext: NSManagedObjectContext
     
-    init(context: NSManagedObjectContext) {
+    init(
+        context: NSManagedObjectContext,
+        deletionContext: NSManagedObjectContext
+    ) {
         self.context = context
+        self.deletionContext = deletionContext
     }
     
     func fetchMemories() async throws -> [Memory] {
@@ -93,4 +98,33 @@ class CoreDataMemoryRepository: MemoryRepository {
     }
 
     
+    func delete(_ memory: Memory) async throws {
+        let id = memory.id
+
+        try await deletionContext.perform { [deletionContext] in
+            do {
+                let request = NSFetchRequest<MemoryEntity>(
+                    entityName: "MemoryEntity"
+                )
+
+                request.predicate = NSPredicate(
+                    format: "id == %@",
+                    id as NSUUID
+                )
+                request.fetchLimit = 1
+                request.includesPropertyValues = false
+
+                guard let entity = try deletionContext.fetch(request).first else {
+                    throw PersistenceError.memoryNotFound(id)
+                }
+
+                deletionContext.delete(entity)
+                try deletionContext.save()
+            } catch {
+                deletionContext.rollback()
+                throw error
+            }
+        }
+    }
+
 }

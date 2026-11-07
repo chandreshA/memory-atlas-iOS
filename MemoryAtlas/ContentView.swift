@@ -11,12 +11,14 @@ struct ContentView: View {
     @ObservedObject var viewModel: TimelineViewModel
     let makeCreateMemoryViewModel: () -> CreateMemoryViewModel
     let makeEditMemoryViewModel: (Memory) -> EditMemoryViewModel
+    let makeDeleteMemoryViewModel: (Memory) -> DeleteMemoryViewModel
     var body: some View {
         NavigationStack {
             TimelineView(
                 viewModel: viewModel,
                 makeCreateMemoryViewModel: makeCreateMemoryViewModel,
-                makeEditMemoryViewModel: makeEditMemoryViewModel
+                makeEditMemoryViewModel: makeEditMemoryViewModel,
+                makeDeleteMemoryViewModel: makeDeleteMemoryViewModel
             )
         }
     }

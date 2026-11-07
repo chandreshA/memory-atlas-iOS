@@ -16,7 +16,8 @@ struct MemoryAtlasApp: App {
     init() {
         let persistenceController = PersistenceController(inMemory: false)
         let repository = CoreDataMemoryRepository(
-            context: persistenceController.container.viewContext
+            context: persistenceController.container.viewContext,
+            deletionContext: persistenceController.container.newBackgroundContext()
         )
 
         self.persistenceController = persistenceController
@@ -39,6 +40,11 @@ struct MemoryAtlasApp: App {
                     EditMemoryViewModel(
                         memory: memory,
                         memoryRepository: self.memoryRepository
+                    )
+                },
+                makeDeleteMemoryViewModel: { memory in
+                    DeleteMemoryViewModel(
+                        memoryRepository: self.memoryRepository, memory: memory
                     )
                 }
             )

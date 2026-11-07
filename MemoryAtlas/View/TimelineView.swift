@@ -14,15 +14,18 @@ struct TimelineView: View {
     @State private var isPresentingCreateMemory = false
     private let makeCreateMemoryViewModel: () -> CreateMemoryViewModel
     private let makeEditMemoryViewModel: (Memory) -> EditMemoryViewModel
+    private let makeDeleteMemoryViewModel: (Memory) -> DeleteMemoryViewModel
 
     init(
         viewModel: TimelineViewModel,
         makeCreateMemoryViewModel: @escaping () -> CreateMemoryViewModel,
-        makeEditMemoryViewModel: @escaping (Memory) -> EditMemoryViewModel
+        makeEditMemoryViewModel: @escaping (Memory) -> EditMemoryViewModel,
+        makeDeleteMemoryViewModel: @escaping (Memory) -> DeleteMemoryViewModel
     ) {
         self.viewModel = viewModel
         self.makeCreateMemoryViewModel = makeCreateMemoryViewModel
         self.makeEditMemoryViewModel = makeEditMemoryViewModel
+        self.makeDeleteMemoryViewModel = makeDeleteMemoryViewModel
     }
 
     var body: some View {
@@ -58,8 +61,12 @@ struct TimelineView: View {
                                     MemoryDetailView(
                                         memory: memory,
                                         makeEditMemoryViewModel: makeEditMemoryViewModel,
+                                        makeDeleteMemoryViewModel: makeDeleteMemoryViewModel,
                                         onUpdated: { updatedMemory in
                                             viewModel.applyUpdate(updatedMemory)
+                                        },
+                                        onDeleted: { deletedID in
+                                            viewModel.applyDeletion(id: deletedID)
                                         }
                                     )
                                 } label: {
@@ -187,6 +194,10 @@ private struct PreviewMemoryRepository: MemoryRepository {
     func update(_ memory: Memory) async throws {
         // Preview does not persist changes.
     }
+
+    func delete(_ memory: Memory) async throws {
+        // Preview does not persist changes.
+    }
 }
 
 #Preview("Loaded Timeline") {
@@ -220,6 +231,12 @@ private struct PreviewMemoryRepository: MemoryRepository {
                     memory: memory,
                     memoryRepository: repository
                 )
+            },
+            makeDeleteMemoryViewModel: { memory in
+                DeleteMemoryViewModel(
+                    memoryRepository: repository,
+                    memory: memory
+                )
             }
         )
     }
@@ -238,6 +255,12 @@ private struct PreviewMemoryRepository: MemoryRepository {
                 EditMemoryViewModel(
                     memory: memory,
                     memoryRepository: repository
+                )
+            },
+            makeDeleteMemoryViewModel: { memory in
+                DeleteMemoryViewModel(
+                    memoryRepository: repository,
+                    memory: memory
                 )
             }
         )
@@ -261,6 +284,12 @@ private struct PreviewMemoryRepository: MemoryRepository {
                     memory: memory,
                     memoryRepository: repository
                 )
+            },
+            makeDeleteMemoryViewModel: { memory in
+                DeleteMemoryViewModel(
+                    memoryRepository: repository,
+                    memory: memory
+                )
             }
         )
     }
@@ -282,6 +311,12 @@ private struct PreviewMemoryRepository: MemoryRepository {
                 EditMemoryViewModel(
                     memory: memory,
                     memoryRepository: repository
+                )
+            },
+            makeDeleteMemoryViewModel: { memory in
+                DeleteMemoryViewModel(
+                    memoryRepository: repository,
+                    memory: memory
                 )
             }
         )
@@ -310,6 +345,12 @@ private struct PreviewMemoryRepository: MemoryRepository {
                 EditMemoryViewModel(
                     memory: memory,
                     memoryRepository: repository
+                )
+            },
+            makeDeleteMemoryViewModel: { memory in
+                DeleteMemoryViewModel(
+                    memoryRepository: repository,
+                    memory: memory
                 )
             }
         )

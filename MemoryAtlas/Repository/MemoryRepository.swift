@@ -9,4 +9,5 @@ protocol MemoryRepository {
     func fetchMemories() async throws -> [Memory]
     func save(_ memory: Memory) async throws
     func update(_ memory: Memory) async throws
+    func delete(_ memory: Memory) async throws
 }
