@@ -55,4 +55,14 @@ final class TimelineViewModel: ObservableObject {
 
         state = .loaded(memories)
     }
+
+    func applyDeletion(id: UUID) {
+        guard case .loaded(var memories) = state else {
+            return
+        }
+
+        memories.removeAll { $0.id == id }
+
+        state = memories.isEmpty ? .empty : .loaded(memories)
+    }
 }

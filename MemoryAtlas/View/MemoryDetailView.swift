@@ -10,17 +10,29 @@ import SwiftUI
 struct MemoryDetailView: View {
     @State private var memory: Memory
     @State private var isPresentingEditSheet: Bool = false
+    @State private var isPresentingDeleteAlert: Bool = false
+    @StateObject private var deleteViewModel: DeleteMemoryViewModel
     private let makeEditMemoryViewModel: (Memory) -> EditMemoryViewModel
     private let onUpdated: (Memory) -> Void
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @State private var deletedMemoryID: UUID?
+    private let onDeleted: (UUID) -> Void
 
     init(
         memory: Memory,
         makeEditMemoryViewModel: @escaping (Memory) -> EditMemoryViewModel,
-        onUpdated: @escaping (Memory) -> Void
+        makeDeleteMemoryViewModel: @escaping (Memory) -> DeleteMemoryViewModel,
+        onUpdated: @escaping (Memory) -> Void,
+        onDeleted: @escaping (UUID) -> Void
     ) {
         _memory = State(initialValue: memory)
+        _deleteViewModel = StateObject(
+            wrappedValue: makeDeleteMemoryViewModel(memory)
+        )
         self.makeEditMemoryViewModel = makeEditMemoryViewModel
         self.onUpdated = onUpdated
+        self.onDeleted = onDeleted
     }
 
     var body: some View {
@@ -44,19 +56,48 @@ struct MemoryDetailView: View {
             .foregroundStyle(AppTheme.inkGreen)
             .padding(24)
         }
-        .background {
-            ArchivePaperSurface()
-                .ignoresSafeArea()
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            VStack(spacing: 12) {
+                Rectangle()
+                    .fill(AppTheme.forestGreen.opacity(0.25))
+                    .frame(height: 1)
+                    .accessibilityHidden(true)
+
+                if deleteViewModel.isDeleting {
+                    ProgressView("Deleting…")
+                        .tint(AppTheme.forestGreen)
+                        .foregroundStyle(AppTheme.inkGreen)
+                        .accessibilityIdentifier("memoryDetail.deleting")
+                }
+
+                if case .failed(let message) = deleteViewModel.state {
+                    Text(message)
+                        .font(AppTheme.memoryBody)
+                        .foregroundStyle(AppTheme.inkGreen)
+                        .accessibilityIdentifier("memoryDetail.deleteError")
+                }
+
+                let layout = dynamicTypeSize.isAccessibilitySize
+                    ? AnyLayout(VStackLayout(spacing: 12))
+                    : AnyLayout(HStackLayout(spacing: 12))
+
+                layout {
+                    editButton
+                    deleteButton
+                }
+                .disabled(deleteViewModel.isDeleting)
+                .opacity(deleteViewModel.isDeleting ? 0.5 : 1)
+            }
+            .padding(.horizontal, 24)
+            .padding(.vertical, 12)
         }
         .safeAreaInset(edge: .leading, spacing: 0) {
             BindingStripView()
                 .ignoresSafeArea(.container, edges: [.top, .bottom])
         }
-        .safeAreaInset(edge: .bottom, spacing: 0){
-            editButton
-                .padding(.horizontal, 20)
-                .padding(.top, 12)
-                .padding(.bottom, 12)
+        .background {
+            ArchivePaperSurface()
+                .ignoresSafeArea()
         }
         .navigationTitle("Memory")
         .navigationBarTitleDisplayMode(.inline)
@@ -73,22 +114,83 @@ struct MemoryDetailView: View {
                 onUpdated(updatedMemory)
             }
         }
+        .confirmationDialog(
+            "Delete this memory?",
+            isPresented: $isPresentingDeleteAlert,
+            titleVisibility: .visible
+        ) {
+            Button("Delete Memory", role: .destructive) {
+                deleteConfirmedMemory()
+            }
+
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will permanently delete this memory. This action cannot be undone.")
+        }
+        .onDisappear {
+            guard let deletedID = deletedMemoryID else {
+                return
+            }
+
+            deletedMemoryID = nil
+            onDeleted(deletedID)
+        }
+        .navigationBarBackButtonHidden(deleteViewModel.isDeleting)
     }
 
     private var editButton: some View {
         Button {
             edit()
         } label: {
-            HStack(spacing: 8) {
-                Text("Edit")
-            }
-            .font(AppTheme.memoryTitle)
-            .frame(maxWidth: .infinity, minHeight: 44)
+            Label("Edit", systemImage: "pencil")
+                .font(AppTheme.memoryTitle)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 4)
+                .frame(maxWidth: .infinity, minHeight: 48)
+                .foregroundStyle(AppTheme.parchment)
+                .background(AppTheme.forestGreen, in: RoundedRectangle(cornerRadius: 8))
         }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Edit memory")
     }
 
-    private func edit(){
+    private func edit() {
         isPresentingEditSheet = true
+    }
+
+    private var deleteButton: some View {
+        Button(role: .destructive) {
+            delete()
+        } label: {
+            Label("Delete", systemImage: "trash")
+                .font(AppTheme.memoryTitle)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 4)
+                .frame(maxWidth: .infinity, minHeight: 48)
+                .foregroundStyle(AppTheme.stampRed)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 8)
+                        .strokeBorder(AppTheme.stampRed.opacity(0.7), lineWidth: 1)
+                }
+                .contentShape(RoundedRectangle(cornerRadius: 8))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Delete memory")
+    }
+
+    private func delete() {
+        isPresentingDeleteAlert = true
+    }
+
+    private func deleteConfirmedMemory() {
+        Task {
+            await deleteViewModel.delete()
+
+            if case .deleted(let deletedMemory) = deleteViewModel.state {
+                deletedMemoryID = deletedMemory.id
+                dismiss()
+            }
+        }
     }
 }
 
@@ -101,6 +203,8 @@ private struct DetailPreviewRepository: MemoryRepository {
     func save(_ memory: Memory) async throws {}
 
     func update(_ memory: Memory) async throws {}
+
+    func delete(_ memory: Memory) async throws {}
 }
 
 #Preview("Memory Detail") {
@@ -121,7 +225,14 @@ private struct DetailPreviewRepository: MemoryRepository {
                     memoryRepository: DetailPreviewRepository()
                 )
             },
-            onUpdated: { _ in }
+            makeDeleteMemoryViewModel: { memory in
+                DeleteMemoryViewModel(
+                    memoryRepository: DetailPreviewRepository(),
+                    memory: memory
+                )
+            },
+            onUpdated: { _ in },
+            onDeleted: { _ in }
         )
     }
 }
@@ -144,7 +255,14 @@ private struct DetailPreviewRepository: MemoryRepository {
                     memoryRepository: DetailPreviewRepository()
                 )
             },
-            onUpdated: { _ in }
+            makeDeleteMemoryViewModel: { memory in
+                DeleteMemoryViewModel(
+                    memoryRepository: DetailPreviewRepository(),
+                    memory: memory
+                )
+            },
+            onUpdated: { _ in },
+            onDeleted: { _ in }
         )
     }
 }
@@ -178,7 +296,14 @@ private struct DetailPreviewRepository: MemoryRepository {
                     memoryRepository: DetailPreviewRepository()
                 )
             },
-            onUpdated: { _ in }
+            makeDeleteMemoryViewModel: { memory in
+                DeleteMemoryViewModel(
+                    memoryRepository: DetailPreviewRepository(),
+                    memory: memory
+                )
+            },
+            onUpdated: { _ in },
+            onDeleted: { _ in }
         )
     }
     .environment(\.dynamicTypeSize, .accessibility3)
